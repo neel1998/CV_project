@@ -67,6 +67,6 @@ pickle_out = open("dict.pickle","wb")
 pickle.dump(DICT, pickle_out)
 pickle_out.close()
 
-pickle_out = open("patch_flows.pickle","wb")
+pickle_out = open("patch_flow.pickle","wb")
 pickle.dump(flows, pickle_out)
 pickle_out.close()
