@@ -23,7 +23,6 @@ def generate_patches():
 
             patch_x.append(idx_x)
             patch_y.append(idx_y)
-        # print(y, cnt)
     
     global PATCH_IDX
     PATCH_IDX = [tuple(patch_y), tuple(patch_x)]
@@ -47,22 +46,17 @@ def _optical_flow(imgs):
 
 def optical_flow(imgs):
     """ Compute optical flow of t-1, t, t+1 images """
-
     flows = []
     for i, _ in enumerate(imgs):
         if i > 0 and i < len(imgs) - 1:
-            
-            flow = _optical_flow([imgs[i-1],imgs[i],imgs[i+1]])
-            # print(flow.shape)
-
-            flowX_patch = flow[:, :, 0][tuple(PATCH_IDX)]
-            flowY_patch = flow[:, :, 1][tuple(PATCH_IDX)]
-            flow_patch = np.concatenate((flowX_patch, flowY_patch), axis=1)
-            print(flow_patch.shape)
-            valid_flow = flow_patch[np.linalg.norm(flow_patch, axis=1) > THRESHOLD]
-            print(valid_flow.shape)
+        	flow = _optical_flow([imgs[i-1],imgs[i],imgs[i+1]])
+        	flowX_patch = flow[:, :, 0][tuple(PATCH_IDX)]
+        	flowY_patch = flow[:, :, 1][tuple(PATCH_IDX)]
+        	flow_patch = np.concatenate((flowX_patch, flowY_patch), axis=1)
+        	valid_flow = flow_patch[np.linalg.norm(flow_patch, axis=1) > THRESHOLD]
 
     return valid_flow
+
 
 generate_patches()
 
@@ -74,29 +68,17 @@ for i, folder in enumerate(sorted(os.listdir(DATA_PATH))):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         resized = cv2.resize(gray,(552, 982))
         imgs.append(resized)
-        
-    # print(imgs[0][0:16,0:16])
-    # ii = imgs[0][tuple(PATCH_IDX)]
-    # print(len(PATCH_IDX[1]))
-    # print(ii[0].reshape(4,4).T)
-    # print(ii[3].reshape(4,4).T)
-
-    # # print(ii[1305].reshape(4,4).T)
-    # # print(ii[1302].reshape(4,4).T)
-
-    # # print(ii[:4,:].reshape(4,4,4))
-    # # print(PATCH_IDX)
-    
-    
-    # break
+            
     print("Folder ", folder, " in progress")
     DICT[folder] = {}
+
     # (A): the native direction of the video
     print("Started Flow A")
     t = time.time()
     flowA = optical_flow(imgs)
     DICT[folder]['A'] = flowA.shape[0]
     print("Time elapsed ", time.time() - t, " seconds ")
+    
     # (B): this video mirrored in the left-right direction
     print("Flow B")
     imgs2 = [img[...,::-1,:] for img in imgs]
@@ -113,17 +95,19 @@ for i, folder in enumerate(sorted(os.listdir(DATA_PATH))):
     flowD = optical_flow(imgs2[::-1])
     DICT[folder]['D'] = flowD.shape[0]
 
+    # Adding to the main matrix
     flow = np.concatenate((flowA,flowB,flowC,flowD),axis=0)
     if i == 0:
         flows = flow
     else:
         flows = np.concatenate((flows, flow),axis=0)
 
+    print('Shape of flows:', flows.shape)
     
-# pickle_out = open("dict.pickle","wb")
-# pickle.dump(DICT, pickle_out)
-# pickle_out.close()
+pickle_out = open("dict.pkl","wb")
+pickle.dump(DICT, pickle_out)
+pickle_out.close()
 
-# pickle_out = open("patch_flow.pickle","wb")
-# pickle.dump(flows, pickle_out)
-# pickle_out.close()
+pickle_out = open("patch_flow.pkl","wb")
+pickle.dump(flows, pickle_out)
+pickle_out.close()

@@ -7,7 +7,7 @@ import pickle
 NUM_OF_CLUSTERS = 4000
 
 # Loading all the flows of the images
-with open('flows.pkl', 'rb') as f:
+with open('patch_flow.pkl', 'rb') as f:
 	flows = pickle.load(f)
 
 # define criteria and apply kmeans
