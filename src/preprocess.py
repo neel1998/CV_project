@@ -4,12 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import time
+import multiprocessing as mp
 
 DATA_PATH = '../ArrowDataAll/Train'
 THRESHOLD = 1000
 STRIDE = 3
 PATCH_IDX = []
-DICT = {}
 
 def generate_patches():
     patch_x, patch_y = [], []
@@ -59,55 +59,63 @@ def optical_flow(imgs):
 
 
 generate_patches()
+if __name__ == '__main__':
 
-for i, folder in enumerate(sorted(os.listdir(DATA_PATH))):
-    imgs = []
-    for j, files in enumerate(sorted(os.listdir(os.path.join(DATA_PATH,folder)))):
-        # print("Reading ", os.path.join(DATA_PATH,folder,files))
-        img = cv2.imread(os.path.join(DATA_PATH,folder,files))
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        resized = cv2.resize(gray,(552, 982))
-        imgs.append(resized)
-            
-    print("Folder ", folder, " in progress")
-    DICT[folder] = {}
+    DICT = {}
+    pool = mp.Pool(4)
 
-    # (A): the native direction of the video
-    print("Started Flow A")
-    t = time.time()
-    flowA = optical_flow(imgs)
-    DICT[folder]['A'] = flowA.shape[0]
-    print("Time elapsed ", time.time() - t, " seconds ")
-    
-    # (B): this video mirrored in the left-right direction
-    print("Flow B")
-    imgs2 = [img[...,::-1,:] for img in imgs]
-    flowB = optical_flow(imgs2)
-    DICT[folder]['B'] = flowB.shape[0]
+    for i, folder in enumerate(sorted(os.listdir(DATA_PATH))):
+        imgs = []
+        for j, files in enumerate(sorted(os.listdir(os.path.join(DATA_PATH,folder)))):
+            # print("Reading ", os.path.join(DATA_PATH,folder,files))
+            img = cv2.imread(os.path.join(DATA_PATH,folder,files))
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            resized = cv2.resize(gray,(552, 982))
+            imgs.append(resized)
+                
+        print("Folder ", folder, " in progress")
+        DICT[folder] = {}
 
-    # (C): the original video time-flipped;
-    print("Flow C")
-    flowC = optical_flow(imgs[::-1])
-    DICT[folder]['C'] = flowC.shape[0]
+        imgs2 = [img[...,::-1,:] for img in imgs]
+        t = time.time()
+        print("Started Flow All")
+        flows = pool.map(optical_flow, [imgs,imgs2,imgs[::-1],imgs2[::-1]])
 
-    # (D): the time-flipped left-right-mirrored version.
-    print("Flow D")
-    flowD = optical_flow(imgs2[::-1])
-    DICT[folder]['D'] = flowD.shape[0]
+        # (A): the native direction of the video
+        # print("Flow A")
+        flowA = flows[0]
+        DICT[folder]['A'] = flowA.shape[0]
+        
+        # (B): this video mirrored in the left-right direction
+        # print("Flow B")
+        flowB = flows[1]
+        DICT[folder]['B'] = flowB.shape[0]
 
-    # Adding to the main matrix
-    flow = np.concatenate((flowA,flowB,flowC,flowD),axis=0)
-    if i == 0:
-        flows = flow
-    else:
-        flows = np.concatenate((flows, flow),axis=0)
+        # (C): the original video time-flipped;
+        # print("Flow C")
+        flowC = flows[2]
+        DICT[folder]['C'] = flowC.shape[0]
 
-    print('Shape of flows:', flows.shape)
-    
-pickle_out = open("dict.pkl","wb")
-pickle.dump(DICT, pickle_out)
-pickle_out.close()
+        # (D): the time-flipped left-right-mirrored version.
+        # print("Flow D")
+        flowD = flows[3]
+        DICT[folder]['D'] = flowD.shape[0]
 
-pickle_out = open("patch_flow.pkl","wb")
-pickle.dump(flows, pickle_out)
-pickle_out.close()
+        print("Complete", folder," Time elapsed ", time.time() - t, " seconds ")
+
+        # Adding to the main matrix
+        flow = np.concatenate((flowA,flowB,flowC,flowD),axis=0)
+        if i == 0:
+            flows = flow
+        else:
+            flows = np.concatenate((flows, flow),axis=0)
+
+        print('Shape of flows:', flows.shape)
+        
+    pickle_out = open("dict.pkl","wb")
+    pickle.dump(DICT, pickle_out)
+    pickle_out.close()
+
+    pickle_out = open("patch_flow.pkl","wb")
+    pickle.dump(flows, pickle_out)
+    pickle_out.close()
