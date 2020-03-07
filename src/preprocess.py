@@ -79,21 +79,21 @@ if __name__ == '__main__':
         imgs2 = [img[...,::-1,:] for img in imgs]
         t = time.time()
         print("Started Flow All")
-        flows = pool.map(optical_flow, [imgs,imgs2,imgs[::-1],imgs2[::-1]])
+        res = pool.map(optical_flow, [imgs,imgs2,imgs[::-1],imgs2[::-1]])
 
         # (A): the native direction of the video
         # print("Flow A")
-        flowA = flows[0]
+        flowA = res[0]
         DICT[folder]['A'] = flowA.shape[0]
         
         # (B): this video mirrored in the left-right direction
         # print("Flow B")
-        flowB = flows[1]
+        flowB = res[1]
         DICT[folder]['B'] = flowB.shape[0]
 
         # (C): the original video time-flipped;
         # print("Flow C")
-        flowC = flows[2]
+        flowC = res[2]
         DICT[folder]['C'] = flowC.shape[0]
 
         # (D): the time-flipped left-right-mirrored version.
