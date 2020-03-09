@@ -11,8 +11,9 @@ with open('patch_flow.pkl', 'rb') as f:
 	flows = pickle.load(f)
 
 # define criteria and apply kmeans
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.1)
-ret, labels, centers = cv2.kmeans(flows, NUM_OF_CLUSTERS, None, criteria, 50, cv2.KMEANS_RANDOM_CENTERS)
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
+ret, labels, centers = cv2.kmeans(flows, NUM_OF_CLUSTERS, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+print('Quality:', ret)
 
 # Pickling the centers
 with open('centers.pkl', 'wb') as f:
