@@ -12,8 +12,14 @@ with open('patch_flow.pkl', 'rb') as f:
 
 print("Clustering started")
 # define criteria and apply kmeans
+<<<<<<< HEAD
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.1)
 ret, labels, centers = cv2.kmeans(flows, NUM_OF_CLUSTERS, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+=======
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
+ret, labels, centers = cv2.kmeans(flows, NUM_OF_CLUSTERS, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+print('Quality:', ret)
+>>>>>>> 3f55057d0a3f0f940db331414a24a53ba7db322f
 
 # Pickling the centers
 with open('centers.pkl', 'wb') as f:
