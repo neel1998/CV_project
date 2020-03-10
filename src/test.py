@@ -48,33 +48,40 @@ def registration(img1, img2):
 		return img2
 
 def _optical_flow(imgs):
-
-	img12 = registration(imgs[1], imgs[0])
-	img23 = registration(imgs[1], imgs[2])
+	imgs, i = args
+	img12 = registration(imgs[i], imgs[i-1])
+	img23 = registration(imgs[i], imgs[i+1])
 
 	flow = cv2.calcOpticalFlowFarneback(img12, img23, None, 0.5, 3, 15, 3, 5, 1.2, 0)
 	flow = cv2.normalize(flow, None, 0, 255, cv2.NORM_MINMAX)
-	return flow
+	
+	flowX_patch = flow[:, :, 0][tuple(PATCH_IDX)]
+	flowY_patch = flow[:, :, 1][tuple(PATCH_IDX)]
+	flow_patch = np.concatenate((flowX_patch, flowY_patch), axis=1)
+	fl = flow_patch[np.linalg.norm(flow_patch, axis=1) > THRESHOLD]
+	fl = fl.flatten()
+
+	if fl.shape[0] > 0:
+		return fl
+	else:
+		return np.array([-1])
 
 def optical_flow(imgs):
 	""" Compute optical flow of t-1, t, t+1 images """
-	flows = []
-	for i, _ in enumerate(imgs):
-		if i > 0 and i < len(imgs) - 1:
-			flow = _optical_flow([imgs[i-1],imgs[i],imgs[i+1]])
-			flowX_patch = flow[:, :, 0][tuple(PATCH_IDX)]
-			flowY_patch = flow[:, :, 1][tuple(PATCH_IDX)]
-			flow_patch = np.concatenate((flowX_patch, flowY_patch), axis=1)
-			valid_flow = flow_patch[np.linalg.norm(flow_patch, axis=1) > THRESHOLD]
-			if i == 1:
-				valid_flows = valid_flow
-			else:
-				valid_flows = np.concatenate((valid_flows,valid_flow), axis = 0)
-	return valid_flows
+	p = mp.Pool(8)
+	arr = [(imgs, i) for i in range(1, len(imgs) - 1)]
+	flow = p.map(_optical_flow,arr)
+	aa = np.concatenate(flow).tolist()
+	res = np.array(aa)
+	res = res[res!=-1].reshape(-1,32)
+	p.close()
+	p.join()
 
-def getQueryVec(imgs, centers):
+	return res
+
+def getQueryVec(flow, centers):
 	query_vector = np.zeros(centers.shape[0])
-	flow = optical_flow(imgs)
+	# flow = optical_flow(imgs)
 
 	dists = np.zeros((centers.shape[0], flow.shape[0]))
 	dists = np.sqrt((flow**2).sum(axis=1)[:, np.newaxis] + (centers**2).sum(axis=1) - 2 * flow.dot(centers.T))
@@ -102,8 +109,17 @@ def test():
 			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 			resized = cv2.resize(gray,(552, 982))
 			imgs.append(resized)
-		
-		query_vector = getQueryVec(imgs, centers).reshape(1, -1) 
+			
+		imgs2 = [img[...,::-1,:] for img in imgs]
+
+		flowA = optical_flow(imgs)
+		flowB = optical_flow(imgs2)
+		flowC = optical_flow(imgs[::-1])
+		flowD = optical_flow(imgs2[::-1])
+
+		flow = np.concatenate((flowA,flowB,flowC,flowD),axis=0)
+
+		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
 
 		# Predicitng
 		pred = clf.predict(query_vector)
