@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 import time
 import multiprocessing as mp
+import matplotlib.pyplot as plt
 
 DATA_PATH = '../ArrowDataAll/Train'
 THRESHOLD = 1200
@@ -24,7 +25,7 @@ def generate_patches():
 			patch_y.append(idx_y)
 	
 	global PATCH_IDX
-	PATCH_IDX = [tuple(patch_y), tuple(patch_x)]
+	PATCH_IDX = [tuple(patch_x), tuple(patch_y)]
 
 def registration(img1, img2):
 	sz = img1.shape
@@ -80,15 +81,35 @@ if __name__ == '__main__':
 			# print("Reading ", os.path.join(DATA_PATH,folder,files))
 			img = cv2.imread(os.path.join(DATA_PATH,folder,files))
 			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-			resized = cv2.resize(gray,(552, 982))
+			resized = cv2.resize(gray,(982, 552))
 			imgs.append(resized)
-				
-		print("Folder ", folder, " in progress")
+		
+		print("Folder ", folder, " in progress")		
 		DICT[folder] = {}
 
-		imgs2 = [img[...,::-1,:] for img in imgs]
+		imgs2 = [np.fliplr(img) for img in imgs]
 		t = time.time()
 
+		# cv2.imwrite('A.jpeg', imgs[0])
+		# cv2.imwrite('B.jpeg', imgs2[0])
+		# cv2.imwrite('C.jpeg', imgs[::-1][0])
+		# cv2.imwrite('D.jpeg', imgs2[::-1][0])
+
+		ptch = imgs[0][tuple(PATCH_IDX)]
+		print(ptch.shape)
+		cnt = 0
+		tt = np.zeros(imgs[0].shape)
+		for y in range(0,552-4,3):
+			for x in range(0,982-4,3):
+				tt[y:y+4,x:x+4] = ptch[cnt].reshape(4,4)
+				cnt += 1
+		# for i in range(10):
+		# 	for j in range(10):
+		# 		plt.subplot(10,10,10*i+j+1)
+		# 		plt.imshow(ptch[10*i+j].reshape(4,4))
+		plt.imshow(tt)
+		plt.show()
+		break
 		# (A): the native direction of the video
 		# print("Flow A")
 		print("Started Flow A")
@@ -124,10 +145,10 @@ if __name__ == '__main__':
 
 		print('Shape of flows:', flows.shape)
 		
-	pickle_out = open("dict.pkl","wb")
-	pickle.dump(DICT, pickle_out)
-	pickle_out.close()
+	# pickle_out = open("dict.pkl","wb")
+	# pickle.dump(DICT, pickle_out)
+	# pickle_out.close()
 
-	pickle_out = open("patch_flow.pkl","wb")
-	pickle.dump(flows, pickle_out)
-	pickle_out.close()
+	# pickle_out = open("patch_flow.pkl","wb")
+	# pickle.dump(flows, pickle_out)
+	# pickle_out.close()
