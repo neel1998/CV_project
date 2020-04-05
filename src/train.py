@@ -7,7 +7,7 @@ def freq(curr_labels):
 	global NUM_OF_WORDS
 
 	try:
-		hist = np.bincount(curr_labels[0, :], minlength=NUM_OF_WORDS)
+		hist = np.bincount(curr_labels[:, 0], minlength=NUM_OF_WORDS)
 	except:
 		hist = np.bincount(np.zeros(0, dtype=np.int64), minlength=NUM_OF_WORDS)
 	return hist

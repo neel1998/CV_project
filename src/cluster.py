@@ -8,7 +8,7 @@ NUM_OF_CLUSTERS = 4000
 
 # Loading all the flows of the images
 with open('patch_flow.pkl', 'rb') as f:
-	flows = pickle.load(f)
+	flows = pickle.load(f).astype(np.float32)
 
 print("Clustering started")
 # define criteria and apply kmeans
@@ -23,4 +23,5 @@ with open('centers.pkl', 'wb') as f:
 with open('labels.pkl', 'wb') as f:
 	pickle.dump(labels, f)
 	
+print('Quality:', ret)
 print('xxxxxxxxxxxxxxx Clustering completed xxxxxxxxxxxxxxxxxxxxxxx')

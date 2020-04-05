@@ -9,13 +9,13 @@ import time
 
 DATA_PATH = '../ArrowDataAll/Test'
 NUM_OF_WORDS = 4000
-THRESHOLD = 1000
+THRESHOLD = 1300
 STRIDE = 3
 PATCH_IDX = []
 
 def freq(curr_labels):
 	global NUM_OF_WORDS
-
+	print(curr_labels.shape)
 	try:
 		hist = np.bincount(curr_labels, minlength=NUM_OF_WORDS)
 	except:
@@ -47,7 +47,7 @@ def registration(img1, img2):
 	except:
 		return img2
 
-def _optical_flow(imgs):
+def _optical_flow(args):
 	imgs, i = args
 	img12 = registration(imgs[i], imgs[i-1])
 	img23 = registration(imgs[i], imgs[i+1])
@@ -68,6 +68,7 @@ def _optical_flow(imgs):
 
 def optical_flow(imgs):
 	""" Compute optical flow of t-1, t, t+1 images """
+	
 	p = mp.Pool(8)
 	arr = [(imgs, i) for i in range(1, len(imgs) - 1)]
 	flow = p.map(_optical_flow,arr)
@@ -79,10 +80,8 @@ def optical_flow(imgs):
 
 	return res
 
-def getQueryVec(flow, centers):
-	query_vector = np.zeros(centers.shape[0])
-	# flow = optical_flow(imgs)
 
+def getQueryVec(flow, centers):
 	dists = np.zeros((centers.shape[0], flow.shape[0]))
 	dists = np.sqrt((flow**2).sum(axis=1)[:, np.newaxis] + (centers**2).sum(axis=1) - 2 * flow.dot(centers.T))
 	labels = np.argmin(dists, axis=1)
@@ -104,26 +103,27 @@ def test():
 		print('Working on folder:', folder)
 		imgs = []
 		for j, files in enumerate(sorted(os.listdir(os.path.join(DATA_PATH,folder)))):
-			print("Reading ", os.path.join(DATA_PATH,folder,files))
+			# print("Reading ", os.path.join(DATA_PATH,folder,files))
 			img = cv2.imread(os.path.join(DATA_PATH,folder,files))
 			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-			resized = cv2.resize(gray,(552, 982))
+			resized = cv2.resize(gray,(982, 552))
 			imgs.append(resized)
 			
-		imgs2 = [img[...,::-1,:] for img in imgs]
+		imgs2 = [np.fliplr(img) for img in imgs]
 
 		flowA = optical_flow(imgs)
 		flowB = optical_flow(imgs2)
 		flowC = optical_flow(imgs[::-1])
 		flowD = optical_flow(imgs2[::-1])
 
-		flow = np.concatenate((flowA,flowB,flowC,flowD),axis=0)
-
-		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
+		query_vectorA = getQueryVec(flowA, centers).reshape(1, -1) 
+		query_vectorB = getQueryVec(flowB, centers).reshape(1, -1) 
+		query_vectorC = getQueryVec(flowC, centers).reshape(1, -1) 
+		query_vectorD = getQueryVec(flowD, centers).reshape(1, -1) 
 
 		# Predicitng
 		pred = clf.predict(query_vector)
-		if pred == 1 and folder[0] == 'F' :
+		if pred == 1 and folder[0] == 'F':
 			correct += 1
 		elif pred == -1 and folder[0] != 'F':
 			correct += 1

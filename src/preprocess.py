@@ -4,9 +4,10 @@ import numpy as np
 import pickle
 import time
 import multiprocessing as mp
+import matplotlib.pyplot as plt
 
 DATA_PATH = '../ArrowDataAll/Train'
-THRESHOLD = 1200
+THRESHOLD = 1300
 STRIDE = 3
 PATCH_IDX = []
 
@@ -24,7 +25,7 @@ def generate_patches():
 			patch_y.append(idx_y)
 	
 	global PATCH_IDX
-	PATCH_IDX = [tuple(patch_y), tuple(patch_x)]
+	PATCH_IDX = [tuple(patch_x), tuple(patch_y)]
 
 def registration(img1, img2):
 	sz = img1.shape
@@ -80,14 +81,13 @@ if __name__ == '__main__':
 			# print("Reading ", os.path.join(DATA_PATH,folder,files))
 			img = cv2.imread(os.path.join(DATA_PATH,folder,files))
 			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-			resized = cv2.resize(gray,(552, 982))
+			resized = cv2.resize(gray,(982, 552))
 			imgs.append(resized)
-				
-		print("Folder ", folder, " in progress")
+		
+		print("Folder ", folder, " in progress")		
 		DICT[folder] = {}
 
-		imgs2 = [img[...,::-1,:] for img in imgs]
-		t = time.time()
+		imgs2 = [np.fliplr(img) for img in imgs]
 
 		# (A): the native direction of the video
 		# print("Flow A")
@@ -113,8 +113,6 @@ if __name__ == '__main__':
 		flowD = optical_flow(imgs2[::-1])
 		DICT[folder]['D'] = flowD.shape[0]
 
-		print("Complete", folder," Time elapsed ", time.time() - t, " seconds ")
-
 		# Adding to the main matrix
 		flow = np.concatenate((flowA,flowB,flowC,flowD),axis=0)
 		if i == 0:
@@ -122,6 +120,7 @@ if __name__ == '__main__':
 		else:
 		    flows = np.concatenate((flows, flow),axis=0)
 
+		print(DICT)
 		print('Shape of flows:', flows.shape)
 		
 	pickle_out = open("dict.pkl","wb")
