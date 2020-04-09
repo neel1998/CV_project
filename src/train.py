@@ -5,11 +5,7 @@ import os
 
 def freq(curr_labels):
 	global NUM_OF_WORDS
-
-	try:
-		hist = np.bincount(curr_labels[:, 0], minlength=NUM_OF_WORDS)
-	except:
-		hist = np.bincount(np.zeros(0, dtype=np.int64), minlength=NUM_OF_WORDS)
+	hist = np.bincount(curr_labels[:, 0], minlength=NUM_OF_WORDS)
 	return hist
 
 # Parameters
@@ -31,7 +27,7 @@ for i, folder in enumerate(sorted(os.listdir(DATA_PATH))):
     print("Folder ", folder, " in progress")
     
     # (A): the native direction of the video
-    print("Started Flow A")
+    print("Flow A")
     curr_labels = labels[csum:csum+DICT[folder]['A']]
     csum += DICT[folder]['A']
     X.append(freq(curr_labels))
@@ -72,6 +68,9 @@ for i, folder in enumerate(sorted(os.listdir(DATA_PATH))):
 
 X = np.array(X)
 Y = np.array(Y)
+
+# Normalizing features
+X = X/(np.linalg.norm(X, axis=1)[:, None]+1e-7)
 print('X.shape:', X.shape, 'Y.shape:', Y.shape)
 
 # SVM

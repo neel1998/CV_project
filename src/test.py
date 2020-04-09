@@ -1,12 +1,12 @@
 import cv2
 import sys
-import matplotlib.pyplot as plt
 import pickle
 import os
 import multiprocessing as mp
 import time
+import numpy as np
 
-DATA_PATH = '/ssd_scratch/cvit/neel1998/ArrowDataAll/Test'
+DATA_PATH = '../ArrowDataAll/Train'
 NUM_OF_WORDS = 4000
 THRESHOLD = 1300
 STRIDE = 3
@@ -85,7 +85,6 @@ def getQueryVec(flow, centers):
 	dists = np.sqrt((flow**2).sum(axis=1)[:, np.newaxis] + (centers**2).sum(axis=1) - 2 * flow.dot(centers.T))
 	labels = np.argmin(dists, axis=1)
 	query_vector = freq(labels)
-	print(query_vector.shape)
 	return query_vector
 
 def test():
@@ -103,7 +102,6 @@ def test():
 		print('Working on folder:', folder)
 		imgs = []
 		for j, files in enumerate(sorted(os.listdir(os.path.join(DATA_PATH,folder)))):
-			# print("Reading ", os.path.join(DATA_PATH,folder,files))
 			img = cv2.imread(os.path.join(DATA_PATH,folder,files))
 			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 			resized = cv2.resize(gray,(982, 552))
@@ -111,59 +109,50 @@ def test():
 			
 		imgs2 = [np.fliplr(img) for img in imgs]
 
-		flowA = optical_flow(imgs)
-		# print("flow A worked")
-		flowB = optical_flow(imgs2)
-		flowC = optical_flow(imgs[::-1])
-		flowD = optical_flow(imgs2[::-1])
-
-		query_vectorA = getQueryVec(flowA, centers).reshape(1, -1) 
-		query_vectorB = getQueryVec(flowB, centers).reshape(1, -1) 
-		query_vectorC = getQueryVec(flowC, centers).reshape(1, -1) 
-		query_vectorD = getQueryVec(flowD, centers).reshape(1, -1) 
+		flow = optical_flow(imgs)
+		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
+		pred = clf.predict(query_vector)
+		if pred == 1 and folder[0] == 'F':
+			correct += 1
+		elif pred == -1 and folder[0] != 'F':
+			correct += 1
+		else:
+			incorrect += 1
 		
-		qV = []
-		qV.append(query_vectorA)
-		qV.append(query_vectorB)
-		qV.append(query_vectorC)
-		qV.append(query_vectorD)
-		# Predicitng
-		for i in range(4):
-			pred = clf.predict(qV[i])
-			if pred == 1 and folder[0] == 'F':
-				correct += 1
-			elif pred == -1 and folder[0] != 'F':
-				correct += 1
-			else:
-				incorrect += 1
+		flow = optical_flow(imgs2)
+		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
+		pred = clf.predict(query_vector)
+		if pred == 1 and folder[0] == 'F':
+			correct += 1
+		elif pred == -1 and folder[0] != 'F':
+			correct += 1
+		else:
+			incorrect += 1
 
-		# pred = clf.predict(query_vectorB)
-		# if pred == 1 and folder[0] == 'F':
-		# 	correct += 1
-		# elif pred == -1 and folder[0] != 'F':
-		# 	correct += 1
-		# else:
-		# 	incorrect += 1
+		flow = optical_flow(imgs[::-1])
+		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
+		pred = clf.predict(query_vector)
+		if pred == -1 and folder[0] == 'F':
+			correct += 1
+		elif pred == 1 and folder[0] != 'F':
+			correct += 1
+		else:
+			incorrect += 1
 
-		# pred = clf.predict(query_vectorC)
-		# if pred == 1 and folder[0] == 'F':
-		# 	correct += 1
-		# elif pred == -1 and folder[0] != 'F':
-		# 	correct += 1
-		# else:
-		# 	incorrect += 1
+		flow = optical_flow(imgs2[::-1])
+		query_vector = getQueryVec(flow, centers).reshape(1, -1)
+		pred = clf.predict(query_vector)
+		if pred == -1 and folder[0] == 'F':
+			correct += 1
+		elif pred == 1 and folder[0] != 'F':
+			correct += 1
+		else:
+			incorrect += 1
 
-		# pred = clf.predict(query_vectorD)
-		# if pred == 1 and folder[0] == 'F':
-		# 	correct += 1
-		# elif pred == -1 and folder[0] != 'F':
-		# 	correct += 1
-		# else:
-		# 	incorrect += 1
-	
 		print(correct, incorrect)
+
 		acc = correct/(correct + incorrect)
-		print("Testing Accuracy after " str(i) + "th video: " + str(acc))             
+		print("Testing Accuracy after " + str(i) + "th video: " + str(acc))             
 
 
 if __name__ == '__main__':
