@@ -1,3 +1,4 @@
+import numpy as np
 import cv2
 import sys
 import matplotlib.pyplot as plt
@@ -163,7 +164,7 @@ def test():
 	
 		print(correct, incorrect)
 		acc = correct/(correct + incorrect)
-		print("Testing Accuracy after " str(i) + "th video: " + str(acc))             
+		print("Testing Accuracy after " + str(i) + "th video: " + str(acc))             
 
 
 if __name__ == '__main__':
