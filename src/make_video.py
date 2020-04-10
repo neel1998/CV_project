@@ -26,8 +26,8 @@ def makeVideo(pathIn,pathOut,fps,cond=False):
         out.write(frame)
     out.release()
 
-# util = Utils()
-# util.generate_patches()
+util = Utils()
+util.generate_patches()
 
 folder = 'Train/F_05gGCvIopwE'
 name = folder.split('/')[1]
