@@ -70,13 +70,15 @@ X = np.array(X)
 Y = np.array(Y)
 
 # Normalizing features
-X = X/(np.linalg.norm(X, axis=1)[:, None]+1e-7)
+X = X/(np.linalg.norm(X, axis=1)[:, None]+1e-10)
 print('X.shape:', X.shape, 'Y.shape:', Y.shape)
 
 # SVM
-clf = SVC(gamma='auto')
+clf = SVC(gamma='scale')
 clf.fit(X, Y)
 
 # Storing the classifier
 with open('clf.pkl', 'wb') as f:
 	pickle.dump(clf, f)
+
+print('Training accuracy:', 100*np.sum(clf.predict(X)==Y)/X.shape[0])

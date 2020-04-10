@@ -6,7 +6,7 @@ import multiprocessing as mp
 import time
 import numpy as np
 
-DATA_PATH = '../ArrowDataAll/Train'
+DATA_PATH = '../ArrowDataAll/Test'
 NUM_OF_WORDS = 4000
 THRESHOLD = 1300
 STRIDE = 3
@@ -18,6 +18,7 @@ def freq(curr_labels):
 	try:
 		hist = np.bincount(curr_labels, minlength=NUM_OF_WORDS)
 	except:
+		print('============')
 		hist = np.bincount(np.zeros(0, dtype=np.int64), minlength=NUM_OF_WORDS)
 	return hist
 
@@ -85,6 +86,7 @@ def getQueryVec(flow, centers):
 	dists = np.sqrt((flow**2).sum(axis=1)[:, np.newaxis] + (centers**2).sum(axis=1) - 2 * flow.dot(centers.T))
 	labels = np.argmin(dists, axis=1)
 	query_vector = freq(labels)
+	query_vector = query_vector/(np.linalg.norm(query_vector)+1e-10)
 	return query_vector
 
 def test():
