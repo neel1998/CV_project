@@ -70,7 +70,7 @@ X = X/(np.linalg.norm(X, axis=1)[:, None]+1e-10)
 print('X.shape:', X.shape, 'Y.shape:', Y.shape)
 
 # SVM
-clf = SVC(gamma='scale')
+clf = SVC(gamma='scale', kernel='linear')
 clf.fit(X, Y)
 
 # Storing the classifier

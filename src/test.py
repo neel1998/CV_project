@@ -14,7 +14,6 @@ def freq(curr_labels):
 	try:
 		hist = np.bincount(curr_labels, minlength=NUM_OF_WORDS)
 	except:
-		print('============')
 		hist = np.bincount(np.zeros(0, dtype=np.int64), minlength=NUM_OF_WORDS)
 	return hist
 
