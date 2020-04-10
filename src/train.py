@@ -2,15 +2,11 @@ import numpy as np
 from sklearn.svm import SVC
 import pickle 
 import os
+from utils import NUM_OF_WORDS, TRAIN_PATH
 
 def freq(curr_labels):
-	global NUM_OF_WORDS
 	hist = np.bincount(curr_labels[:, 0], minlength=NUM_OF_WORDS)
 	return hist
-
-# Parameters
-DATA_PATH = '../ArrowDataAll/Train'
-NUM_OF_WORDS = 4000
 
 # Generating the data
 with open('dict.pkl', 'rb') as f:
@@ -23,7 +19,7 @@ X = []
 Y = []
 
 csum = 0
-for i, folder in enumerate(sorted(os.listdir(DATA_PATH))):
+for i, folder in enumerate(sorted(os.listdir(TRAIN_PATH))):
     print("Folder ", folder, " in progress")
     
     # (A): the native direction of the video
