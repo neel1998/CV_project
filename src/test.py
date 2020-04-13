@@ -5,6 +5,33 @@ import os
 import time
 import numpy as np
 from utils import TEST_PATH, h, w, NUM_OF_WORDS, Utils
+# from mlp import MLP
+from torch import nn, optim
+import torch
+
+
+class MLP(nn.Module):
+    
+    def __init__(self):
+        super(MLP, self).__init__()
+        
+        n_out = 2
+        self.linear = nn.Sequential(
+            
+            # nn.Linear(4000, 2000),
+            # nn.ReLU(),
+            # nn.Linear(2000, 512),
+            # nn.ReLU(),
+            nn.Linear(4000, 128),
+            nn.ReLU(),
+            nn.Linear(128, 16),
+            nn.ReLU(),
+            nn.Linear(16, n_out)
+        )
+
+    def forward(self, x):
+        x = self.linear(x)
+        return x
 
 cv2.setUseOptimized(True)
 cv2.setNumThreads(4)
@@ -30,13 +57,15 @@ def test():
 	util = Utils()
 	util.generate_patches()
 
-	with open('clf.pkl', 'rb') as f:
-		clf = pickle.load(f)
+	# with open('clf.pkl', 'rb') as f:
+		# clf = pickle.load(f)
 	
 	with open('centers.pkl', 'rb') as f:
 		centers = pickle.load(f)    
 
-
+	mlp = MLP().double()
+	m = 'mlp_SGD_02_10.pth'
+	mlp.load_state_dict(torch.load('./models/' + m))
 	correct = 0
 	incorrect = 0
 	for i, folder in enumerate(sorted(os.listdir(TEST_PATH))):
@@ -52,28 +81,34 @@ def test():
 
 		flow = util.optical_flow(imgs)
 		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-		pred = clf.predict(query_vector)
+		# pred = clf.predict(query_vector)
+		out = mlp(torch.from_numpy(query_vector).double())
+		pred = torch.max(out.data,1)
 		if pred == 1 and folder[0] == 'F':
 			correct += 1
-		elif pred == -1 and folder[0] != 'F':
+		elif pred == 0 and folder[0] != 'F':
 			correct += 1
 		else:
 			incorrect += 1
 		
 		flow = util.optical_flow(imgs2)
 		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-		pred = clf.predict(query_vector)
+		# pred = clf.predict(query_vector)
+		out = net(torch.from_numpy(query_vector).double())
+		pred = torch.max(out.data,1)
 		if pred == 1 and folder[0] == 'F':
 			correct += 1
-		elif pred == -1 and folder[0] != 'F':
+		elif pred == 0 and folder[0] != 'F':
 			correct += 1
 		else:
 			incorrect += 1
 
 		flow = util.optical_flow(imgs[::-1])
 		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-		pred = clf.predict(query_vector)
-		if pred == -1 and folder[0] == 'F':
+		# pred = clf.predict(query_vector)
+		out = net(torch.from_numpy(query_vector).double())
+		pred = torch.max(out.data,1)
+		if pred == 0 and folder[0] == 'F':
 			correct += 1
 		elif pred == 1 and folder[0] != 'F':
 			correct += 1
@@ -82,8 +117,10 @@ def test():
 
 		flow = util.optical_flow(imgs2[::-1])
 		query_vector = getQueryVec(flow, centers).reshape(1, -1)
-		pred = clf.predict(query_vector)
-		if pred == -1 and folder[0] == 'F':
+		# pred = clf.predict(query_vector)
+		out = net(torch.from_numpy(query_vector).double())
+		pred = torch.max(out.data,1)
+		if pred == 0 and folder[0] == 'F':
 			correct += 1
 		elif pred == 1 and folder[0] != 'F':
 			correct += 1
