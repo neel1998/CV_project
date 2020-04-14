@@ -155,14 +155,3 @@ for epoch in range(50):
     val_acc = (pred == Y_val).sum().item()/Y_val.shape[0]
     s = "After epoch " + str(epoch + 1) + " Validation Accuracy: " + str(val_acc)
     print(s)
-
-
-# # SVM
-# clf = SVC(gamma='scale', kernel='linear')
-# clf.fit(X, Y)
-
-# # Storing the classifier
-# with open('clf.pkl', 'wb') as f:
-# 	pickle.dump(clf, f)
-
-# print('Training accuracy:', 100*np.sum(clf.predict(X)==Y)/X.shape[0])

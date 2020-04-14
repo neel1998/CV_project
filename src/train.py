@@ -24,43 +24,47 @@ for i, folder in enumerate(sorted(os.listdir(TRAIN_PATH))):
     
     # (A): the native direction of the video
     print("Flow A")
-    curr_labels = labels[csum:csum+DICT[folder]['A']]
-    csum += DICT[folder]['A']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(1)
-    else:
-    	Y.append(-1)
-    
+    if DICT[folder]['A'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['A']]
+	    csum += DICT[folder]['A']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(1)
+	    else:
+	    	Y.append(-1)
+	    
     # (B): this video mirrored in the left-right direction
     print("Flow B")
-    curr_labels = labels[csum:csum+DICT[folder]['B']]
-    csum += DICT[folder]['B']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(1)
-    else:
-    	Y.append(-1)
+    if DICT[folder]['B'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['B']]
+	    csum += DICT[folder]['B']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(1)
+	    else:
+	    	Y.append(-1)
 
     # (C): the original video time-flipped;
     print("Flow C")
-    curr_labels = labels[csum:csum+DICT[folder]['C']]
-    csum += DICT[folder]['C']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(-1)
-    else:
-    	Y.append(1)
+    if DICT[folder]['C'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['C']]
+	    csum += DICT[folder]['C']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(-1)
+	    else:
+	    	Y.append(1)
 
     # (D): the time-flipped left-right-mirrored version.
     print("Flow D")
-    curr_labels = labels[csum:csum+DICT[folder]['D']]
-    csum += DICT[folder]['D']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(-1)
-    else:
-    	Y.append(1)
+    if DICT[folder]['D'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['D']]
+	    csum += DICT[folder]['D']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(-1)
+	    else:
+	    	Y.append(1)
 
 X = np.array(X)
 Y = np.array(Y)

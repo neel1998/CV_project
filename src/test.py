@@ -80,52 +80,56 @@ def test():
 		imgs2 = [np.fliplr(img) for img in imgs]
 
 		flow = util.optical_flow(imgs)
-		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-		# pred = clf.predict(query_vector)
-		out = mlp(torch.from_numpy(query_vector).double())
-		pred = torch.max(out.data,1)
-		if pred == 1 and folder[0] == 'F':
-			correct += 1
-		elif pred == 0 and folder[0] != 'F':
-			correct += 1
-		else:
-			incorrect += 1
+		if flow.shape[0] > 0:
+			query_vector = getQueryVec(flow, centers).reshape(1, -1)
+			# pred = clf.predict(query_vector)
+			out = mlp(torch.from_numpy(query_vector).double())
+			pred = torch.max(out.data,1)
+			if pred == 1 and folder[0] == 'F':
+				correct += 1
+			elif pred == 0 and folder[0] != 'F':
+				correct += 1
+			else:
+				incorrect += 1
 		
 		flow = util.optical_flow(imgs2)
-		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-		# pred = clf.predict(query_vector)
-		out = net(torch.from_numpy(query_vector).double())
-		pred = torch.max(out.data,1)
-		if pred == 1 and folder[0] == 'F':
-			correct += 1
-		elif pred == 0 and folder[0] != 'F':
-			correct += 1
-		else:
-			incorrect += 1
+		if flow.shape[0] > 0:
+			query_vector = getQueryVec(flow, centers).reshape(1, -1) 
+			# pred = clf.predict(query_vector)
+			out = net(torch.from_numpy(query_vector).double())
+			pred = torch.max(out.data,1)
+			if pred == 1 and folder[0] == 'F':
+				correct += 1
+			elif pred == 0 and folder[0] != 'F':
+				correct += 1
+			else:
+				incorrect += 1
 
 		flow = util.optical_flow(imgs[::-1])
-		query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-		# pred = clf.predict(query_vector)
-		out = net(torch.from_numpy(query_vector).double())
-		pred = torch.max(out.data,1)
-		if pred == 0 and folder[0] == 'F':
-			correct += 1
-		elif pred == 1 and folder[0] != 'F':
-			correct += 1
-		else:
-			incorrect += 1
+		if flow.shape[0] > 0:
+			query_vector = getQueryVec(flow, centers).reshape(1, -1) 
+			# pred = clf.predict(query_vector)
+			out = net(torch.from_numpy(query_vector).double())
+			pred = torch.max(out.data,1)
+			if pred == 0 and folder[0] == 'F':
+				correct += 1
+			elif pred == 1 and folder[0] != 'F':
+				correct += 1
+			else:
+				incorrect += 1
 
 		flow = util.optical_flow(imgs2[::-1])
-		query_vector = getQueryVec(flow, centers).reshape(1, -1)
-		# pred = clf.predict(query_vector)
-		out = net(torch.from_numpy(query_vector).double())
-		pred = torch.max(out.data,1)
-		if pred == 0 and folder[0] == 'F':
-			correct += 1
-		elif pred == 1 and folder[0] != 'F':
-			correct += 1
-		else:
-			incorrect += 1
+		if flow.shape[0] > 0:
+			query_vector = getQueryVec(flow, centers).reshape(1, -1)
+			# pred = clf.predict(query_vector)
+			out = net(torch.from_numpy(query_vector).double())
+			pred = torch.max(out.data,1)
+			if pred == 0 and folder[0] == 'F':
+				correct += 1
+			elif pred == 1 and folder[0] != 'F':
+				correct += 1
+			else:
+				incorrect += 1
 
 		print(correct, incorrect)
 
