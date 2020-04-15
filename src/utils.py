@@ -20,6 +20,8 @@ class Utils():
 		self.THRESHOLD = 1300
 		self.h = h
 		self.w = w
+		self.method = 'adaptive'
+		self.n = 100 # top n patches
 
 	def generate_patches(self):
 		patch_x, patch_y = [], []
@@ -77,24 +79,29 @@ class Utils():
 			return 0
 
 		flow_patch = np.concatenate((flowX_patch, flowY_patch), axis=1)
-		fl = flow_patch[np.linalg.norm(flow_patch, axis=1) > self.THRESHOLD]
+		if self.method == 'threshold':
+			fl = flow_patch[np.linalg.norm(flow_patch, axis=1) > self.THRESHOLD]
+		elif self.method == 'adaptive':
+			fl = flow_patch[np.argsort(np.linalg.norm(flow_patch, axis=1))][::-1][:self.n]
+		
 		fl = fl.flatten()
 
 		if fl.shape[0] > 0:
 			return fl
 		else:
-			return np.array([-1])
+			return None
 
 	def optical_flow(self, imgs, saveflow=False, name=None):
 		""" Compute optical flow of t-1, t, t+1 images """
 		self.imgs = imgs
 		flow = []
 		for i in range(1, len(self.imgs) - 1):
-			flow.append(self._optical_flow(i, saveflow, name))
+			ret = self._optical_flow(i, saveflow, name)
+			if ret is not None:
+				flow.append(ret)
 
 		if saveflow:
 			return None
-		aa = np.concatenate(flow).tolist()
-		res = np.array(aa)
-		res = res[res!=-1].reshape(-1,32)
+
+		res = np.concatenate(flow).reshape(-1,32)
 		return res
