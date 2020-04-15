@@ -48,40 +48,44 @@ csum = 0
 for i, folder in enumerate(sorted(os.listdir(TRAIN_PATH))):
     
     # (A): the native direction of the video
-    curr_labels = labels[csum:csum+DICT[folder]['A']]
-    csum += DICT[folder]['A']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(1)
-    else:
-    	Y.append(0)
-    
+    if DICT[folder]['A'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['A']]
+	    csum += DICT[folder]['A']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(1)
+	    else:
+	    	Y.append(0)
+	    
     # (B): this video mirrored in the left-right direction
-    curr_labels = labels[csum:csum+DICT[folder]['B']]
-    csum += DICT[folder]['B']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(1)
-    else:
-    	Y.append(0)
+    if DICT[folder]['B'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['B']]
+	    csum += DICT[folder]['B']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(1)
+	    else:
+	    	Y.append(0)
 
     # (C): the original video time-flipped;
-    curr_labels = labels[csum:csum+DICT[folder]['C']]
-    csum += DICT[folder]['C']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(0)
-    else:
-    	Y.append(1)
+    if DICT[folder]['C'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['C']]
+	    csum += DICT[folder]['C']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(0)
+	    else:
+	    	Y.append(1)
 
     # (D): the time-flipped left-right-mirrored version.
-    curr_labels = labels[csum:csum+DICT[folder]['D']]
-    csum += DICT[folder]['D']
-    X.append(freq(curr_labels))
-    if folder[0] == 'F':
-    	Y.append(0)
-    else:
-    	Y.append(1)
+    if DICT[folder]['D'] != 0:
+	    curr_labels = labels[csum:csum+DICT[folder]['D']]
+	    csum += DICT[folder]['D']
+	    X.append(freq(curr_labels))
+	    if folder[0] == 'F':
+	    	Y.append(0)
+	    else:
+	    	Y.append(1)
 
 X = np.array(X)
 Y = np.array(Y)
@@ -143,7 +147,7 @@ for epoch in range(50):
         corr += (pred == labels).sum().item()
     
     if (epoch+1)%10 == 0:
-        torch.save(mlp.state_dict(), './models/mlp_SGD_01_' + str(epoch + 1) + '.pth')
+        torch.save(mlp.state_dict(), './models/new_mlp_SGD_01_' + str(epoch + 1) + '.pth')
 
     acc = corr/total
     s = "After epoch " + str(epoch + 1) + " Training Accuracy: " + str(acc) + " Loss: " + str(running_loss)
