@@ -25,11 +25,11 @@ class MLP(nn.Module):
             # nn.ReLU(),
             # nn.Linear(2000, 512),
             # nn.ReLU(),
-            nn.Linear(450, 128),
+            nn.Linear(4000, 512),
             nn.ReLU(),
-            nn.Linear(128, 32),
+            nn.Linear(512, 64),
             nn.ReLU(),
-            nn.Linear(32, n_out)
+            nn.Linear(64, n_out)
         )
 
     def forward(self, x):
@@ -42,6 +42,15 @@ with open('dict.pkl', 'rb') as f:
 
 with open('labels.pkl', 'rb') as f:
 	labels = pickle.load(f)
+
+with open('test_data.pkl', 'rb') as f:
+    X_test = pickle.load(f)[:,0,:]
+
+with open('test_labels.pkl', 'rb') as f:
+    Y_test = pickle.load(f)
+
+i = np.where(Y_test == -1)
+Y_test[i] = 0
 
 X = []
 Y = []
@@ -100,7 +109,7 @@ mlp = MLP().double()
 
 loss = nn.CrossEntropyLoss()
 # loss = nn.BCELoss()
-optimizer = optim.SGD(mlp.parameters(), lr = 0.1)
+optimizer = optim.SGD(mlp.parameters(), lr = 0.7)
 
 
 idx = np.arange(X.shape[0])
@@ -109,11 +118,11 @@ idx = np.random.shuffle(idx)
 X = X[idx][0]
 Y = Y[idx].reshape((-1))
 
-pca = PCA(n_components = 450)
-X = pca.fit_transform(X)
+# pca = PCA(n_components = 450)
+# X = pca.fit_transform(X)
 
 print("X.shape:", X.shape)
-train_size = 380
+train_size = 400
 X_train = X[:train_size,:]
 Y_train = Y[:train_size]
 
@@ -121,32 +130,11 @@ Y_train = Y[:train_size]
 X_val = X[train_size:,:]
 Y_val = Y[train_size:]
 
-neigh = KNeighborsClassifier(n_neighbors = 3)
-neigh.fit(X_train, Y_train)
-
-
-print("KNN results:")
-correct = 0
-for i in range(X_train.shape[0]):
-    d = X_train[i]
-    if Y_train[i] == neigh.predict([d]):
-        correct += 1
-
-print("Training acc : " + str(correct/Y_train.shape[0]))
-
-
-correct = 0
-for i in range(X_val.shape[0]):
-    d = X_val[i]
-    if Y_val[i] == neigh.predict([d]):
-        correct += 1
-
-print("Validation acc : " + str(correct/Y_val.shape[0]))
-# print('X.shape:', X.shape, 'Y.shape:', Y.shape)
-
 X = torch.from_numpy(X).double()
 Y = torch.from_numpy(Y)
 
+X_test = torch.from_numpy(X_test).double()
+Y_test = torch.from_numpy(Y_test)
 
 # train_size = 408
 
@@ -195,3 +183,13 @@ for epoch in range(50):
     val_acc = (pred == Y_val).sum().item()/Y_val.shape[0]
     s = "After epoch " + str(epoch + 1) + " Validation Accuracy: " + str(val_acc)
     print(s)
+
+    test_samples = 236
+    outputs = mlp(X_test[:test_samples])
+    pred_err = loss(outputs, Y_test[:test_samples])
+    _,pred = torch.max(outputs.data, 1)
+    test_acc = (pred == Y_test[:test_samples]).sum().item()/Y_test[:test_samples].shape[0]
+    s = "After epoch " + str(epoch + 1) + " Testing Accuracy: " + str(test_acc)
+    print(s)
+    print('\n')
+
