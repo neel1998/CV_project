@@ -5,33 +5,8 @@ import os
 import time
 import numpy as np
 from utils import TEST_PATH, h, w, NUM_OF_WORDS, Utils
-# from mlp import MLP
 from torch import nn, optim
 import torch
-
-
-class MLP(nn.Module):
-    
-    def __init__(self):
-        super(MLP, self).__init__()
-        
-        n_out = 2
-        self.linear = nn.Sequential(
-            
-            # nn.Linear(4000, 2000),
-            # nn.ReLU(),
-            # nn.Linear(2000, 512),
-            # nn.ReLU(),
-            nn.Linear(4000, 128),
-            nn.ReLU(),
-            nn.Linear(128, 16),
-            nn.ReLU(),
-            nn.Linear(16, n_out)
-        )
-
-    def forward(self, x):
-        x = self.linear(x)
-        return x
 
 cv2.setUseOptimized(True)
 cv2.setNumThreads(4)
@@ -52,19 +27,16 @@ def getQueryVec(flow, centers):
 	query_vector = query_vector/(np.linalg.norm(query_vector)+1e-10)
 	return query_vector
 
-def test():
+def create_data():
 
 	util = Utils()
 	util.generate_patches()
 
+	labels = []
+	test_data = []
 	with open('centers.pkl', 'rb') as f:
 		centers = pickle.load(f)    
 
-	# mlp = MLP().double()
-	# m = 'mlp_SGD_01_50.pth'
-	# mlp.load_state_dict(torch.load('./models/' + m))
-	correct = 0
-	incorrect = 0
 	for i, folder in enumerate(sorted(os.listdir(TEST_PATH))):
 		print('Working on folder:', folder)
 		imgs = []
@@ -79,56 +51,44 @@ def test():
 		flow = util.optical_flow(imgs)
 		if flow.shape[0] > 0:
 			query_vector = getQueryVec(flow, centers).reshape(1, -1)
-			out = mlp(torch.from_numpy(query_vector).double())
-			pred = torch.max(out.data,1)
-			if pred == 1 and folder[0] == 'F':
-				correct += 1
-			elif pred == 0 and folder[0] != 'F':
-				correct += 1
+			test_data.append(query_vector)
+			if folder[0] == 'F':
+				labels.append(1)
 			else:
-				incorrect += 1
-		
+				labels.append(-1)	
+			
 		flow = util.optical_flow(imgs2)
 		if flow.shape[0] > 0:
 			query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-			out = mlp(torch.from_numpy(query_vector).double())
-			pred = torch.max(out.data,1)
-			if pred == 1 and folder[0] == 'F':
-				correct += 1
-			elif pred == 0 and folder[0] != 'F':
-				correct += 1
+			test_data.append(query_vector)
+			if folder[0] == 'F':
+				labels.append(1)
 			else:
-				incorrect += 1
+				labels.append(-1)	
 
 		flow = util.optical_flow(imgs[::-1])
 		if flow.shape[0] > 0:
 			query_vector = getQueryVec(flow, centers).reshape(1, -1) 
-			out = mlp(torch.from_numpy(query_vector).double())
-			pred = torch.max(out.data,1)
-			if pred == 0 and folder[0] == 'F':
-				correct += 1
-			elif pred == 1 and folder[0] != 'F':
-				correct += 1
+			test_data.append(query_vector)
+			if folder[0] == 'F':
+				labels.append(-1)
 			else:
-				incorrect += 1
+				labels.append(1)	
 
 		flow = util.optical_flow(imgs2[::-1])
 		if flow.shape[0] > 0:
 			query_vector = getQueryVec(flow, centers).reshape(1, -1)
-			out = mlp(torch.from_numpy(query_vector).double())
-			pred = torch.max(out.data,1)
-			if pred == 0 and folder[0] == 'F':
-				correct += 1
-			elif pred == 1 and folder[0] != 'F':
-				correct += 1
+			test_data.append(query_vector)
+			if folder[0] == 'F':
+				labels.append(-1)
 			else:
-				incorrect += 1
+				labels.append(1)	
+	
+	with open('test_data.pkl', 'wb') as f:
+		pickle.dump(np.array(test_data), f)
 
-		print(correct, incorrect)
-
-		acc = correct/(correct + incorrect)
-		print("Testing Accuracy after " + str(i) + "th video: " + str(acc))             
-
+	with open('test_labels.pkl', 'wb') as f:
+		pickle.dump(np.array(labels), f)
 
 if __name__ == '__main__':
-	test()
+	create_data()

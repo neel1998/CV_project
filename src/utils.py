@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 cv2.setUseOptimized(True)
 cv2.setNumThreads(4)
 
-DATA_PATH = '../ArrowDataAll'
+# DATA_PATH = '../ArrowDataAll'
+DATA_PATH = '/ssd_scratch/cvit/neel1998/ArrowDataAll'
 TRAIN_PATH = path.join(DATA_PATH, 'Train')
 TEST_PATH = path.join(DATA_PATH, 'Test')
 STRIDE = 3

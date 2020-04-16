@@ -4,6 +4,8 @@ import os
 from utils import NUM_OF_WORDS, TRAIN_PATH
 from torch import nn, optim
 import torch
+from sklearn.decomposition import PCA
+from sklearn.neighbors import KNeighborsClassifier
 
 print("import finished")
 def freq(curr_labels):
@@ -23,11 +25,11 @@ class MLP(nn.Module):
             # nn.ReLU(),
             # nn.Linear(2000, 512),
             # nn.ReLU(),
-            nn.Linear(4000, 128),
+            nn.Linear(450, 128),
             nn.ReLU(),
-            nn.Linear(128, 16),
+            nn.Linear(128, 32),
             nn.ReLU(),
-            nn.Linear(16, n_out)
+            nn.Linear(32, n_out)
         )
 
     def forward(self, x):
@@ -98,29 +100,63 @@ mlp = MLP().double()
 
 loss = nn.CrossEntropyLoss()
 # loss = nn.BCELoss()
-optimizer = optim.SGD(mlp.parameters(), lr=0.1)
+optimizer = optim.SGD(mlp.parameters(), lr = 0.1)
 
 
 idx = np.arange(X.shape[0])
 idx = np.random.shuffle(idx)
 
-X = X[idx]
-Y = Y[idx]
+X = X[idx][0]
+Y = Y[idx].reshape((-1))
 
-X = torch.from_numpy(X)[0].double()
-Y = torch.from_numpy(Y)[0]
+pca = PCA(n_components = 450)
+X = pca.fit_transform(X)
 
-print('X.shape:', X.shape, 'Y.shape:', Y.shape)
+print("X.shape:", X.shape)
+train_size = 380
+X_train = X[:train_size,:]
+Y_train = Y[:train_size]
 
-train_size = 408
+
+X_val = X[train_size:,:]
+Y_val = Y[train_size:]
+
+neigh = KNeighborsClassifier(n_neighbors = 3)
+neigh.fit(X_train, Y_train)
+
+
+print("KNN results:")
+correct = 0
+for i in range(X_train.shape[0]):
+    d = X_train[i]
+    if Y_train[i] == neigh.predict([d]):
+        correct += 1
+
+print("Training acc : " + str(correct/Y_train.shape[0]))
+
+
+correct = 0
+for i in range(X_val.shape[0]):
+    d = X_val[i]
+    if Y_val[i] == neigh.predict([d]):
+        correct += 1
+
+print("Validation acc : " + str(correct/Y_val.shape[0]))
+# print('X.shape:', X.shape, 'Y.shape:', Y.shape)
+
+X = torch.from_numpy(X).double()
+Y = torch.from_numpy(Y)
+
+
+# train_size = 408
+
+print("MLP results:")
 
 X_train = X[:train_size,:]
 Y_train = Y[:train_size]
 
 X_val = X[train_size:,:]
 Y_val = Y[train_size:]
-
-print(X_train.size(0), X_train.size(1))
 
 for epoch in range(50):
     
@@ -146,8 +182,8 @@ for epoch in range(50):
         total += labels.size(0)
         corr += (pred == labels).sum().item()
     
-    if (epoch+1)%10 == 0:
-        torch.save(mlp.state_dict(), './models/new_mlp_SGD_01_' + str(epoch + 1) + '.pth')
+    # if (epoch+1)%10 == 0:
+        # torch.save(mlp.state_dict(), './models/new_mlp_SGD_01_' + str(epoch + 1) + '.pth')
 
     acc = corr/total
     s = "After epoch " + str(epoch + 1) + " Training Accuracy: " + str(acc) + " Loss: " + str(running_loss)
