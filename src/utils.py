@@ -6,7 +6,7 @@ cv2.setUseOptimized(True)
 cv2.setNumThreads(4)
 
 # DATA_PATH = '../ArrowDataAll'
-DATA_PATH = '/scratch/anchit/ArrowDataAll'
+DATA_PATH = '../ArrowDataAll'
 TRAIN_PATH = path.join(DATA_PATH, 'Train')
 TEST_PATH = path.join(DATA_PATH, 'Test')
 STRIDE = 3
@@ -21,7 +21,7 @@ class Utils():
 		self.THRESHOLD = 1300
 		self.h = h
 		self.w = w
-		self.method = 'adaptive'
+		self.method = 'threshold'
 		self.n = 100 # top n patches
 
 	def generate_patches(self):

@@ -61,6 +61,8 @@ def test():
 				correct += 1
 			else:
 				incorrect += 1
+
+		print(correct, incorrect)
 		
 		flow = util.optical_flow(imgs2)
 		if flow.shape[0] > 0:
@@ -73,6 +75,8 @@ def test():
 			else:
 				incorrect += 1
 
+		print(correct, incorrect)
+
 		flow = util.optical_flow(imgs[::-1])
 		if flow.shape[0] > 0:
 			query_vector = getQueryVec(flow, centers).reshape(1, -1) 
@@ -83,6 +87,8 @@ def test():
 				correct += 1
 			else:
 				incorrect += 1
+
+		print(correct, incorrect)
 
 		flow = util.optical_flow(imgs2[::-1])
 		if flow.shape[0] > 0:
@@ -102,4 +108,16 @@ def test():
 
 
 if __name__ == '__main__':
-	test()
+
+	with open('clf.pkl', 'rb') as f:
+		clf = pickle.load(f)
+	
+	with open('test_data.pkl', 'rb') as f:
+		X = pickle.load(f)[:, 0, :]
+
+	with open('test_labels.pkl', 'rb') as f:
+		Y = pickle.load(f)
+
+	print(np.sum(clf.predict(X)==Y)/X.shape[0])
+	
+	# test()
