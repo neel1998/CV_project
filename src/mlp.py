@@ -6,6 +6,7 @@ from torch import nn, optim
 import torch
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
+import matplotlib.pyplot as plt
 
 print("import finished")
 def freq(curr_labels):
@@ -146,7 +147,11 @@ Y_train = Y[:train_size]
 X_val = X[train_size:,:]
 Y_val = Y[train_size:]
 
-for epoch in range(50):
+train_acc = []
+train_loss = []
+val_acc = []
+val_loss = []
+for epoch in range(35):
     
     running_loss = 0.0
     total = 0
@@ -175,13 +180,17 @@ for epoch in range(50):
 
     acc = corr/total
     s = "After epoch " + str(epoch + 1) + " Training Accuracy: " + str(acc) + " Loss: " + str(running_loss)
+    train_acc.append(acc)
+    train_loss.append(running_loss)
     print(s)
     #Validation
     outputs = mlp(X_val)
     pred_err = loss(outputs, Y_val)
     _,pred = torch.max(outputs.data, 1)
-    val_acc = (pred == Y_val).sum().item()/Y_val.shape[0]
-    s = "After epoch " + str(epoch + 1) + " Validation Accuracy: " + str(val_acc)
+    v_acc = (pred == Y_val).sum().item()/Y_val.shape[0]
+    s = "After epoch " + str(epoch + 1) + " Validation Accuracy: " + str(v_acc)
+    val_acc.append(v_acc)
+    val_loss.append(pred_err.item())
     print(s)
 
     test_samples = 236
@@ -193,3 +202,12 @@ for epoch in range(50):
     print(s)
     print('\n')
 
+data = []
+
+data.append(train_acc)
+data.append(val_acc)
+data.append(train_loss)
+data.append(val_loss)
+
+with open('mlp_res.pkl', 'wb') as f:
+    pickle.dump(np.array(data), f)

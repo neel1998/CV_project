@@ -77,6 +77,11 @@ Y = np.array(Y)
 
 # Normalizing features
 X = X/(np.linalg.norm(X, axis=1)[:, None]+1e-10)
+
+X = X - np.mean(X, axis = 1)
+cov = np.linalg.cov(X.T)
+
+
 print('X.shape:', X.shape, 'Y.shape:', Y.shape)
 
 # pca = PCA(n_components = 450)
