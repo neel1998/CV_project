@@ -78,16 +78,20 @@ Y = np.array(Y)
 # Normalizing features
 X = X/(np.linalg.norm(X, axis=1)[:, None]+1e-10)
 
-X = X - np.mean(X, axis = 1)
-cov = np.linalg.cov(X.T)
+X = X - np.mean(X, axis = 1).reshape(-1,1)
+cov = np.cov(X.T)
+w, v = np.linalg.eig(cov)
+idx = np.argsort(w)[::-1][:10]
+v = v[:,idx].real
 
-
+X = X.dot(v)
+X_test = X_test.dot(v)
 print('X.shape:', X.shape, 'Y.shape:', Y.shape)
 
 # pca = PCA(n_components = 450)
 # X = pca.fit_transform(X)
 
-neigh = KNeighborsClassifier(n_neighbors = 3)
+neigh = KNeighborsClassifier(n_neighbors = 7)
 neigh.fit(X, Y)
 
 print("KNN results:")
@@ -100,8 +104,8 @@ for i in range(X.shape[0]):
 print("Training acc : " + str(correct/Y.shape[0]))
 
 
-with open('clf.pkl', 'rb') as f:
-    clf = pickle.load(f)
+#with open('clf.pkl', 'rb') as f:
+ #   clf = pickle.load(f)
 
 correct = 0
 for i in range(X_test.shape[0]):
