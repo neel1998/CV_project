@@ -21,7 +21,7 @@ class Utils():
 		self.THRESHOLD = 1300
 		self.h = h
 		self.w = w
-		self.method = 'adaptive'
+		self.method = 'threshold'
 		self.n = 100 # top n patches
 
 	def generate_patches(self):
