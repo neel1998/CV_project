@@ -2,6 +2,9 @@ import numpy as np
 import cv2
 from os import path
 import matplotlib.pyplot as plt
+from lucas_kanade import lucas_kanade_opt_flow
+
+
 cv2.setUseOptimized(True)
 cv2.setNumThreads(4)
 
@@ -11,6 +14,9 @@ TRAIN_PATH = path.join(DATA_PATH, 'Train')
 TEST_PATH = path.join(DATA_PATH, 'Test')
 STRIDE = 3
 NUM_OF_WORDS = 4000
+
+OPTICAL_FLOW = 0
+
 h, w = 552, 982
 
 class Utils():
@@ -53,7 +59,11 @@ class Utils():
 		img12 = self.registration(self.imgs[i], self.imgs[i-1])
 		img23 = self.registration(self.imgs[i], self.imgs[i+1])
 
-		flow = cv2.calcOpticalFlowFarneback(img12, img23, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+		if OPTICAL_FLOW == 0:
+			flow = cv2.calcOpticalFlowFarneback(img12, img23, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+		else:
+			flow = lucas_kanade_opt_flow(img12, img23, 15)
+		
 		flow = cv2.normalize(flow, None, 0, 255, cv2.NORM_MINMAX)
 		
 		flowX_patch = flow[:, :, 0][self.Patch_idx]
@@ -106,3 +116,4 @@ class Utils():
 
 		res = np.concatenate(flow).reshape(-1,32)
 		return res
+		
