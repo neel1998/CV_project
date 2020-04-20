@@ -78,7 +78,7 @@ plt.show()
 
 # Histogram of frame number vs important flow word
 # Results to be displayed on this video
-folder = '../ArrowDataAll/Test/B1tREHGodIEZk'
+folder = '../ArrowDataAll/Train/F_l87MRRjpkxM'
 
 # Finding the most important feature
 imp_features = np.argsort(np.abs(clf.coef_[0]))[::-1][:400]
